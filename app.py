@@ -11,6 +11,9 @@ import cv2
 '''Le script vise à détecter les contours de brins de paille dans une image donnée. Le modèle de deep learning U2NET est utilisé pour générer un masque de segmentation de l'image. 
 Ensuite, le script affine ce masque pour identifier les contours des brins de paille et calcule des statistiques (longueurs des brins).
  En plus, une visualisation Grad-CAM est proposée pour comprendre quelles parties de l'image influencent le plus la prédiction du modèle.'''
+#Pour render 
+import os
+port = int(os.environ.get("PORT", 8501)) 
 
 
 # Définition de la classe REBNCONV
