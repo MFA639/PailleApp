@@ -1,10 +1,10 @@
-streamlit==1.19.0
-numpy==1.26.0
-pandas==2.2.2
-torch==2.4.1
-opencv-python==4.10.0
-scikit-learn==1.3.0
-matplotlib==3.9.2
-pyarrow==12.0.1
-boto3==1.28.1
+streamlit
+numpy
+pandas
+torch
+opencv-python
+scikit-learn
+matplotlib
+pyarrow
+boto3
 
