@@ -171,10 +171,25 @@ MIN_CONTOUR_AREA = 30
 CONTOUR_THICKNESS = 1
 KERNEL_SIZE = 3
 
+
+import gdown
+import os
 #Chargement du modèle
 @st.cache_resource
 def load_model():
     model = U2NET(in_ch=3, out_ch=1)
+    
+# ID du fichier sur Google Drive
+file_id = "1-1vbVqx3p0FCVln2RTY9IlKd6WNq1-_3"
+model_path = "u2net_best.pth"
+
+# Télécharger le fichier s'il n'existe pas déjà localement
+if not os.path.exists(model_path):
+    print("Téléchargement du modèle depuis Google Drive...")
+    url = f"https://drive.google.com/uc?id={file_id}"
+    gdown.download(url, model_path, quiet=False)
+    
+    
     model.load_state_dict(torch.load('u2net_best.pth', map_location=torch.device('cpu')))
     model.eval()
     return model

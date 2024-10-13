@@ -2,9 +2,10 @@ streamlit
 numpy
 pandas
 torch
-opencv-python
+opencv-python-headless
 scikit-learn
 matplotlib
 pyarrow
 boto3
+gdown
 
