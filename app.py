@@ -192,7 +192,7 @@ def download_with_progress(url, output):
 
 # Fonction de chargement du modèle
 @st.cache_resource
-def load_model(source="drive"):
+def load_model(source="local"):
     model = U2NET(in_ch=3, out_ch=1)
 
     # Chemin du modèle
@@ -234,7 +234,7 @@ source = st.selectbox("Sélectionner la source du modèle", ["drive", "local"])
 model = load_model(source)
 
 
-        
+
 #Prétraitement de l'image
 def preprocess_image(image):
     transform = transforms.Compose([
