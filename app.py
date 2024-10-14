@@ -172,27 +172,82 @@ CONTOUR_THICKNESS = 1
 KERNEL_SIZE = 3
 
 
+# Paramètres
+RESIZE_DIM = 256
+STRAW_THRESHOLD = 0.65
+MIN_CONTOUR_AREA = 30
+CONTOUR_THICKNESS = 1
+KERNEL_SIZE = 3
+
+
 import gdown
 import os
-#Chargement du modèle
-@st.cache_resource
-def load_model():
-    model = U2NET(in_ch=3, out_ch=1)
-    
-# ID du fichier sur Google Drive
-file_id = "1-1vbVqx3p0FCVln2RTY9IlKd6WNq1-_3"
-model_path = "u2net_best.pth"
+import streamlit as st
+import time
 
-# Télécharger le fichier s'il n'existe pas déjà localement
-if not os.path.exists(model_path):
-    print("Téléchargement du modèle depuis Google Drive...")
-    url = f"https://drive.google.com/uc?id={file_id}"
-    gdown.download(url, model_path, quiet=False)
-    
-    
-    model.load_state_dict(torch.load('u2net_best.pth', map_location=torch.device('cpu')))
-    model.eval()
-    return model
+# Fonction pour suivre le téléchargement
+def download_with_progress(url, output):
+    response = gdown.download(url, output, quiet=False)
+    return response
+
+# Fonction de chargement du modèle
+@st.cache_resource
+def load_model(source="drive"):
+    model = U2NET(in_ch=3, out_ch=1)
+
+    # Chemin du modèle
+    model_path = "u2net_best.pth"
+
+    # Si on télécharge depuis Google Drive
+    if source == "drive":
+        file_id = "1-1vbVqx3p0FCVln2RTY9IlKd6WNq1-_3"
+        url = f"https://drive.google.com/uc?id={file_id}"
+
+        # Télécharge le fichier s'il n'existe pas déjà localement
+        if not os.path.exists(model_path):
+            st.write("Téléchargement du modèle depuis Google Drive...")
+            progress_bar = st.progress(0)
+            start_time = time.time()
+
+            with st.spinner("Téléchargement en cours..."):
+                download_with_progress(url, model_path)
+
+    # Si le modèle est déjà en local
+    elif source == "local":
+        st.write("Chargement du modèle depuis un chemin local...")
+        if not os.path.exists(model_path):
+            st.error("Fichier local manquant !")
+
+    # Charger le modèle
+    try:
+        model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
+        model.eval()
+        return model
+    except Exception as e:
+        st.error(f"Erreur lors du chargement du modèle : {e}")
+        return None
+
+# Interface utilisateur pour choisir le mode de téléchargement
+source = st.selectbox("Sélectionner la source du modèle", ["drive", "local"])
+
+# Charger le modèle
+model = load_model(source)
+
+
+        
+#Prétraitement de l'image
+def preprocess_image(image):
+    transform = transforms.Compose([
+        transforms.Resize((RESIZE_DIM, RESIZE_DIM)),
+        transforms.ToTensor(),
+    ])
+    return transform(image).unsqueeze(0)
+
+#Prédiction du masque
+def predict_mask(model, image):
+    with torch.no_grad():
+        output = model(image)
+    return torch.sigmoid(output[0]).squeeze().cpu().numpy()
 
 #Prétraitement de l'image
 def preprocess_image(image):
