@@ -8,5 +8,7 @@ matplotlib
 pyarrow
 boto3
 gdown
+torchvision
+
 
 
