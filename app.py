@@ -183,52 +183,52 @@ KERNEL_SIZE = 3
 import gdown
 import os
 import streamlit as st
+import torch
 import time
 
-# Fonction pour suivre le téléchargement
-def download_with_progress(url, output):
-    response = gdown.download(url, output, quiet=False)
-    return response
+# Fonction pour télécharger le modèle depuis Google Drive avec suivi de progression
+def download_from_drive():
+    file_id = "1-1vbVqx3p0FCVln2RTY9IlKd6WNq1-_3"
+    model_path = "u2net_best.pth"
+    
+    if not os.path.exists(model_path):
+        url = f"https://drive.google.com/uc?id={file_id}"
+        st.write("Téléchargement du modèle depuis Google Drive...")
+        
+        # Barre de progression
+        progress_bar = st.progress(0)
+        start_time = time.time()
 
-# Fonction de chargement du modèle
+        def update_progress(passed, total_size):
+            progress = min(passed / total_size, 1.0)
+            progress_bar.progress(progress)
+            if passed >= total_size:
+                st.success("Téléchargement terminé")
+
+        # Téléchargement avec suivi
+        gdown.download(url, model_path, quiet=False, progress=update_progress)
+
+# Fonction pour charger le modèle
 @st.cache_resource
 def load_model(source="local"):
     model = U2NET(in_ch=3, out_ch=1)
-
-    # Chemin du modèle
     model_path = "u2net_best.pth"
-
-    # Si on télécharge depuis Google Drive
+    
+    # Choisir la source du modèle
     if source == "drive":
-        file_id = "1-1vbVqx3p0FCVln2RTY9IlKd6WNq1-_3"
-        url = f"https://drive.google.com/uc?id={file_id}"
+        download_from_drive()
 
-        # Télécharge le fichier s'il n'existe pas déjà localement
-        if not os.path.exists(model_path):
-            st.write("Téléchargement du modèle depuis Google Drive...")
-            progress_bar = st.progress(0)
-            start_time = time.time()
-
-            with st.spinner("Téléchargement en cours..."):
-                download_with_progress(url, model_path)
-
-    # Si le modèle est déjà en local
-    elif source == "local":
-        st.write("Chargement du modèle depuis un chemin local...")
-        if not os.path.exists(model_path):
-            st.error("Fichier local manquant !")
-
-    # Charger le modèle
-    try:
+    # Charger le modèle depuis le chemin local
+    if os.path.exists(model_path):
         model.load_state_dict(torch.load(model_path, map_location=torch.device('cpu')))
         model.eval()
         return model
-    except Exception as e:
-        st.error(f"Erreur lors du chargement du modèle : {e}")
+    else:
+        st.error(f"Le modèle '{model_path}' n'a pas été trouvé.")
         return None
 
 # Interface utilisateur pour choisir le mode de téléchargement
-source = st.selectbox("Sélectionner la source du modèle", ["drive", "local"])
+source = st.selectbox("Sélectionner la source du modèle", ["local", "drive"])
 
 # Charger le modèle
 model = load_model(source)
